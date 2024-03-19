@@ -73,6 +73,11 @@ def activity(activity: Activity):
     return position
 
 
+@app.get("/test")
+def test():
+    return get_stats(46)
+
+
 def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     """
     Store activity in the database
@@ -107,11 +112,6 @@ def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     cur.close()
 
     return (position, counts)
-
-
-@app.get("/test")
-def test():
-    get_stats(46)
 
 
 def get_stats(season: int) -> list:
