@@ -35,16 +35,16 @@ def activity(activity: Activity):
     season = str(activity.season).zfill(2)
     episode = str(activity.episode).zfill(2)
 
-    position = log_activity(activity.username, season, episode)
+    position, winner = log_activity(activity.username, season, episode)
 
     if position == 1:
-        message = f"{activity.username} is watching S{season}E{episode} first! 🥇"
+        message = f"{activity.username} is watching S{season}E{episode} first! 🥇\nThey have been first {winner} times!"
     elif position == 2:
         message = f"{activity.username} is watching S{season}E{episode}! 🥈"
     elif position == 3:
         message = f"{activity.username} is watching S{season}E{episode}! 🥉"
     elif position == 4:
-        message = f"{activity.username} is finally watching S{season}E{episode}! We no longer need spoiler tags."
+        message = f"{activity.username} is finally watching S{season}E{episode}!\nWe no longer need spoiler tags."
 
     resp = post(
         f"{getenv('SIGNAL_API')}/v2/send",
@@ -63,7 +63,7 @@ def activity(activity: Activity):
     return position
 
 
-def log_activity(username: str, season: int, episode: int) -> int:
+def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     """
     Store activity in the database
     """
@@ -75,12 +75,19 @@ def log_activity(username: str, season: int, episode: int) -> int:
     cur.execute(select, (season, episode))
     position = len(cur.fetchall()) + 1
 
-    insert = """INSERT INTO survivorLog(username, season, episode, timestamp)
-            VALUES(%s, %s, %s, current_timestamp)
+    insert = """INSERT INTO survivorLog(username, season, episode, position, timestamp)
+            VALUES(%s, %s, %s, %s, current_timestamp)
             RETURNING id;"""
 
-    cur.execute(insert, (username, season, episode))
+    cur.execute(insert, (username, season, episode, position))
     result = cur.fetchone()[0]
+
+    counts = 0
+    if position == 1:
+        winner = """SELECT id FROM survivorLog WHERE username = %s AND position = 1;"""
+
+        cur.execute(winner, (username,))
+        counts = len(cur.fetchall())
 
     if result:
         logging.info(f"stored: {result}")
@@ -88,4 +95,4 @@ def log_activity(username: str, season: int, episode: int) -> int:
 
     cur.close()
 
-    return position
+    return (position, counts)

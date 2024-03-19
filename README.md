@@ -5,6 +5,7 @@ create table survivorLog (
   username VARCHAR(64) NOT NULL,
   season int NOT NULL,
   episode int NOT NULL,
+  position int NOT NULL,
   timestamp TIMESTAMP
 );
 create user jeff with encrypted password 'xxx';
