@@ -1,0 +1,4 @@
+fastapi==0.90.1
+requests
+uvicorn[standard]
+psycopg[binary,pool]
