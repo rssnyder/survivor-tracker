@@ -26,6 +26,22 @@ conn = psycopg.connect(
 )
 
 
+def send_signal(message: str):
+    resp = post(
+        f"{getenv('SIGNAL_API')}/v2/send",
+        json={
+            "message": message,
+            "number": getenv("SIGNAL_FROM"),
+            "recipients": [getenv("SIGNAL_TO")],
+        },
+    )
+
+    if resp.status_code >= 400:
+        logging.error(resp.text)
+    else:
+        logging.info(resp.text)
+
+
 @app.post("/activity")
 def activity(activity: Activity):
     """
@@ -46,19 +62,13 @@ def activity(activity: Activity):
     elif position == 4:
         message = f"{activity.username} is finally watching S{season}E{episode}!\nWe no longer need spoiler tags."
 
-    resp = post(
-        f"{getenv('SIGNAL_API')}/v2/send",
-        json={
-            "message": message,
-            "number": getenv("SIGNAL_FROM"),
-            "recipients": [getenv("SIGNAL_TO")],
-        },
-    )
+    send_signal(message)
 
-    if resp.status_code >= 400:
-        logging.error(resp.text)
-    else:
-        logging.info(resp.text)
+    if position == 4:
+        score_message = "Current Scores:"
+        for username, score in get_stats(season):
+            score_message += f"\n{username}: {score}"
+        send_signal(score_message)
 
     return position
 
@@ -66,6 +76,7 @@ def activity(activity: Activity):
 def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     """
     Store activity in the database
+    Get number of times the person in 1st has been 1st before
     """
 
     cur = conn.cursor()
@@ -96,3 +107,36 @@ def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     cur.close()
 
     return (position, counts)
+
+
+@app.get("/test")
+def test():
+    get_stats(46)
+
+
+def get_stats(season: int) -> list:
+    """
+    Get the rankings for the current season
+    """
+
+    cur = conn.cursor()
+
+    select = """SELECT username, position FROM survivorLog WHERE season = %s;"""
+
+    cur.execute(select, (season,))
+
+    user_points = {}
+    for episode in cur.fetchall():
+        username = episode[0]
+        position = episode[1]
+
+        points = abs((position - 1) - 3)
+
+        if username not in user_points:
+            user_points[username] = points
+        else:
+            user_points[username] = user_points[username] + points
+
+    sorted_scores = sorted(user_points.items(), key=lambda x: x[1], reverse=True)
+
+    return sorted_scores
