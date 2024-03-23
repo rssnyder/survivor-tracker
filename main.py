@@ -12,8 +12,8 @@ import psycopg
 class Activity(BaseModel):
     username: str
     show: str
-    season: int
-    episode: int
+    season: str
+    episode: str
 
 
 app = FastAPI()
@@ -48,8 +48,8 @@ def activity(activity: Activity):
     Log a users activity
     """
 
-    season = str(activity.season).zfill(2)
-    episode = str(activity.episode).zfill(2)
+    season = activity.season.zfill(2)
+    episode = activity.episode.zfill(2)
 
     position, winner = log_activity(activity.username, season, episode)
 
