@@ -52,6 +52,9 @@ def activity(activity: Activity):
     episode = activity.episode.zfill(2)
 
     position, winner = log_activity(activity.username, season, episode)
+    if not position:
+        logging.info(f"rewatch: {activity.username}")
+        return 0
 
     if position == 1:
         message = f"{activity.username} is watching S{season}E{episode} first! 🥇\nThey have been first {winner} times!"
@@ -60,7 +63,7 @@ def activity(activity: Activity):
     elif position == 3:
         message = f"{activity.username} is watching S{season}E{episode}! 🥉"
     elif position == 4:
-        message = f"{activity.username} is finally watching S{season}E{episode}!\nWe no longer need spoiler tags."
+        message = f"{activity.username} is finally watching S{season}E{episode}! 💩\nWe no longer need spoiler tags."
 
     send_signal(message)
 
@@ -85,6 +88,13 @@ def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     """
 
     cur = conn.cursor()
+
+    existing = """SELECT id FROM survivorLog WHERE username = % season = %s AND episode = %s;"""
+
+    cur.execute(existing, (username, season, episode))
+    if len(cur.fetchall()) > 0:
+        cur.close()
+        return (None, None)
 
     select = """SELECT id FROM survivorLog WHERE season = %s AND episode = %s;"""
 
