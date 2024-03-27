@@ -92,7 +92,7 @@ def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
     existing = """SELECT id FROM survivorLog WHERE username = %s AND season = %s AND episode = %s;"""
 
     cur.execute(existing, (username, season, episode))
-    if len(cur.fetchall()) > 0:
+    if cur.rowcount:
         cur.close()
         return (None, None)
 
