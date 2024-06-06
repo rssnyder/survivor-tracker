@@ -57,7 +57,7 @@ def activity(activity: Activity):
         return 0
 
     if position == 1:
-        message = f"{activity.username} is watching S{season}E{episode} first! 🥇\nThey have been first {winner} times!"
+        message = f"{activity.username} is watching S{season}E{episode} first! 🥇\nThey have been first {winner} time{'s' if winner > 1 else ''} this season!"
     elif position == 2:
         message = f"{activity.username} is watching S{season}E{episode}! 🥈"
     elif position == 3:
@@ -110,9 +110,9 @@ def log_activity(username: str, season: int, episode: int) -> tuple[int, int]:
 
     counts = 0
     if position == 1:
-        winner = """SELECT id FROM survivorLog WHERE username = %s AND position = 1;"""
+        winner = """SELECT id FROM survivorLog WHERE username = %s AND season = %s AND position = 1;"""
 
-        cur.execute(winner, (username,))
+        cur.execute(winner, (username, season))
         counts = len(cur.fetchall())
 
     if result:
