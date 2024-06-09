@@ -51,6 +51,10 @@ def activity(activity: Activity):
     season = activity.season.zfill(2)
     episode = activity.episode.zfill(2)
 
+    if season != getenv("CURRENT_SEASON", "00"):
+        logging.info(f"off season viewing: {activity.username}")
+        return season
+
     position, winner = log_activity(activity.username, season, episode)
     if not position:
         logging.info(f"rewatch: {activity.username}")
