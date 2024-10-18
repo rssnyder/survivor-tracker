@@ -9,9 +9,11 @@ group =
 [tautulli]
 api =
 
-[players]
-"+15555555555" = "tautulli_user"
+[plex_players]
+"tautulli_user" = "John Smith"
 
+[signal_players]
+"+15555555555" = "tautulli_user"
 
 [database]
 host =

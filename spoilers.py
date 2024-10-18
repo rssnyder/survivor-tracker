@@ -71,7 +71,7 @@ async def wait_for_spoilers():
             if (
                 (x.get("grandparent_title") == "Survivor")
                 and (x.get("parent_title").split(" ")[-1] == "47")
-                and (config["players"].get(signal_user) == x.get("username"))
+                and (config["signal_players"].get(signal_user) == x.get("username"))
             )
         ]:
             # calculate position in the episode

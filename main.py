@@ -39,20 +39,8 @@ def activity(activity: Activity):
     season = activity.season.zfill(2)
     episode = activity.episode.zfill(2)
 
-    """
-    Update username so it shows personalized names
-    """
-    watcher = activity.username
-    if watcher:
-        if watcher == "riley_snyder":
-            watcher = "Riley and Nicole"
-        elif watcher == "hmfis":
-            watcher = "Hannah and Sweepy"
-        elif watcher == "mose162":
-            watcher = "Hunter"
-        elif watcher == "barry.sa":
-            watcher = "Barry and Marcin"
-        return watcher
+    # Update username so it shows personalized names
+    watcher = config["plex_users"][activity.username]
 
     if season != config["survivor"]["season"]:
         logging.info(f"off season viewing: {watcher}")
