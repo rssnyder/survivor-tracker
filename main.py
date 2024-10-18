@@ -3,10 +3,11 @@ import logging
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-
-from requests import post
+from tomli import load
 
 import psycopg
+
+from signalm import send
 
 
 class Activity(BaseModel):
@@ -16,30 +17,17 @@ class Activity(BaseModel):
     episode: str
 
 
+with open("config.toml", mode="rb") as fp:
+    config = load(fp)
+
 app = FastAPI()
 
 conn = psycopg.connect(
-    host=getenv("DB_HOST"),
-    dbname=getenv("DB_DB"),
-    user=getenv("DB_USER"),
+    host=config["database"]["host"],
+    dbname=config["database"]["db"],
+    user=config["database"]["user"],
     password=getenv("DB_PASS"),
 )
-
-
-def send_signal(message: str):
-    resp = post(
-        f"{getenv('SIGNAL_API')}/v2/send",
-        json={
-            "message": message,
-            "number": getenv("SIGNAL_FROM"),
-            "recipients": [getenv("SIGNAL_TO")],
-        },
-    )
-
-    if resp.status_code >= 400:
-        logging.error(resp.text)
-    else:
-        logging.info(resp.text)
 
 
 @app.post("/activity")
@@ -51,7 +39,7 @@ def activity(activity: Activity):
     season = activity.season.zfill(2)
     episode = activity.episode.zfill(2)
 
-    if season != getenv("CURRENT_SEASON", "00"):
+    if season != config["survivor"]["season"]:
         logging.info(f"off season viewing: {activity.username}")
         return season
 
@@ -69,13 +57,23 @@ def activity(activity: Activity):
     elif position == 4:
         message = f"{activity.username} is finally watching S{season}E{episode}! 💩\nWe no longer need spoiler tags."
 
-    send_signal(message)
+    send(
+        config["signal"]["api"],
+        config["signal"]["number"],
+        config["signal"]["group"],
+        message,
+    )
 
     if position == 4:
         score_message = "Current Scores:"
         for username, score in get_stats(season):
             score_message += f"\n{username}: {score}"
-        send_signal(score_message)
+        send(
+            config["signal"]["api"],
+            config["signal"]["number"],
+            config["signal"]["group"],
+            score_message,
+        )
 
     return position
 

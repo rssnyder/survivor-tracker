@@ -1,0 +1,19 @@
+[survivor]
+season =
+
+[signal]
+api =
+number
+group =
+
+[tautulli]
+api =
+
+[players]
+"+15555555555" = "tautulli_user"
+
+
+[database]
+host =
+db =
+user =
