@@ -39,23 +39,38 @@ def activity(activity: Activity):
     season = activity.season.zfill(2)
     episode = activity.episode.zfill(2)
 
+    """
+    Update username so it shows personalized names
+    """
+    watcher = activity.username
+    if watcher:
+        if watcher == "riley_snyder":
+            watcher = "Riley and Nicole"
+        elif watcher == "hmfis":
+            watcher = "Hannah and Sweepy"
+        elif watcher == "mose162":
+            watcher = "Hunter"
+        elif watcher == "barry.sa":
+            watcher = "Barry and Marcin"
+        return watcher
+
     if season != config["survivor"]["season"]:
-        logging.info(f"off season viewing: {activity.username}")
+        logging.info(f"off season viewing: {watcher}")
         return season
 
     position, winner = log_activity(activity.username, season, episode)
     if not position:
-        logging.info(f"rewatch: {activity.username}")
+        logging.info(f"rewatch: {watcher}")
         return 0
 
     if position == 1:
-        message = f"{activity.username} is watching S{season}E{episode} first! 🥇\nThey have been first {winner} time{'s' if winner > 1 else ''} this season!"
+        message = f"{watcher} started watching S{season}E{episode} first! 🥇\nThey have been first {winner} time{'s' if winner > 1 else ''} this season!"
     elif position == 2:
-        message = f"{activity.username} is watching S{season}E{episode}! 🥈"
+        message = f"{watcher} started watching S{season}E{episode}! 🥈"
     elif position == 3:
-        message = f"{activity.username} is watching S{season}E{episode}! 🥉"
+        message = f"{watcher} started watching S{season}E{episode}! 🥉"
     elif position == 4:
-        message = f"{activity.username} is finally watching S{season}E{episode}! 💩\nWe no longer need spoiler tags."
+        message = f"{watcher} finally started watching S{season}E{episode}! 💩\nWe no longer need spoiler tags."
 
     send(
         config["signal"]["api"],
@@ -67,7 +82,7 @@ def activity(activity: Activity):
     if position == 4:
         score_message = "Current Scores:"
         for username, score in get_stats(season):
-            score_message += f"\n{username}: {score}"
+            score_message += f"\n{watcher}: {score}"
         send(
             config["signal"]["api"],
             config["signal"]["number"],
