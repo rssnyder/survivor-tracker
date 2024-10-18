@@ -3,10 +3,11 @@ import logging
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-
-from requests import post
+from tomli import load
 
 import psycopg
+
+from signalm import send
 
 
 class Activity(BaseModel):
@@ -16,30 +17,17 @@ class Activity(BaseModel):
     episode: str
 
 
+with open("config.toml", mode="rb") as fp:
+    config = load(fp)
+
 app = FastAPI()
 
 conn = psycopg.connect(
-    host=getenv("DB_HOST"),
-    dbname=getenv("DB_DB"),
-    user=getenv("DB_USER"),
+    host=config["database"]["host"],
+    dbname=config["database"]["db"],
+    user=config["database"]["user"],
     password=getenv("DB_PASS"),
 )
-
-
-def send_signal(message: str):
-    resp = post(
-        f"{getenv('SIGNAL_API')}/v2/send",
-        json={
-            "message": message,
-            "number": getenv("SIGNAL_FROM"),
-            "recipients": [getenv("SIGNAL_TO")],
-        },
-    )
-
-    if resp.status_code >= 400:
-        logging.error(resp.text)
-    else:
-        logging.info(resp.text)
 
 
 @app.post("/activity")
@@ -66,7 +54,7 @@ def activity(activity: Activity):
             watcher = "Barry and Marcin"
         return watcher
 
-    if season != getenv("CURRENT_SEASON", "00"):
+    if season != config["survivor"]["season"]:
         logging.info(f"off season viewing: {watcher}")
         return season
 
@@ -84,13 +72,23 @@ def activity(activity: Activity):
     elif position == 4:
         message = f"{watcher} finally started watching S{season}E{episode}! 💩\nWe no longer need spoiler tags."
 
-    send_signal(message)
+    send(
+        config["signal"]["api"],
+        config["signal"]["number"],
+        config["signal"]["group"],
+        message,
+    )
 
     if position == 4:
         score_message = "Current Scores:"
         for username, score in get_stats(season):
             score_message += f"\n{watcher}: {score}"
-        send_signal(score_message)
+        send(
+            config["signal"]["api"],
+            config["signal"]["number"],
+            config["signal"]["group"],
+            score_message,
+        )
 
     return position
 
