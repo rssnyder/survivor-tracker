@@ -46,6 +46,7 @@ async def wait_for_spoilers():
 
         # ignore anything other than messages
         if "dataMessage" not in message["envelope"]:
+            logging.debug("not a message")
             continue
 
         # skip non spoilers
@@ -54,6 +55,7 @@ async def wait_for_spoilers():
             for x in message["envelope"]["dataMessage"].get("textStyles", [])
             if x.get("style") == "SPOILER"
         ]:
+            logging.debug("not a spoiler")
             continue
 
         signal_user = message["envelope"]["source"]
@@ -93,6 +95,8 @@ async def wait_for_spoilers():
                     position,
                 )
             )
+
+            logging.info(f"tagged spoiler for {signal_user} at {position}")
 
 
 if __name__ == "__main__":
