@@ -2,6 +2,7 @@ from websockets import connect
 from asyncio import get_event_loop
 from json import loads
 from os import getenv
+from base64 import b64decode
 import logging
 
 from requests import get
@@ -30,7 +31,7 @@ async def receive():
         raise e
 
 
-async def wait_for_spoilers():
+async def wait_for_spoilers(groupId: str):
     # loop through all new messages
 
     logging.info("waiting for spoilers...")
@@ -44,9 +45,13 @@ async def wait_for_spoilers():
             print("unable to load message: ", e)
             continue
 
-        # ignore anything other than messages
-        if "dataMessage" not in message["envelope"]:
-            logging.debug("not a message")
+        # only watch messages in our group
+        if (
+            ("dataMessage" not in message["envelope"])
+            or ("groupInfo" not in message["envelope"]["dataMessage"])
+            or (message["envelope"]["dataMessage"]["groupInfo"]["groupId"] != groupId)
+        ):
+            logging.debug("not from our group")
             continue
 
         # skip non spoilers
@@ -101,6 +106,9 @@ async def wait_for_spoilers():
 
 if __name__ == "__main__":
 
+    # decode the group id
+    groupId = b64decode(config["signal"]["group"].split(".")[-1])
+
     event_loop = get_event_loop()
 
-    event_loop.run_until_complete(wait_for_spoilers())
+    event_loop.run_until_complete(wait_for_spoilers(groupId))
