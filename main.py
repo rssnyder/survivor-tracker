@@ -70,7 +70,7 @@ def activity(activity: Activity):
     if position == 4:
         score_message = "Current Scores:"
         for username, score in get_stats(season):
-            score_message += f"\n{watcher}: {score}"
+            score_message += f"\n{config['plex_users'][username]}: {score}"
         send(
             config["signal"]["api"],
             config["signal"]["number"],
