@@ -69,6 +69,8 @@ async def wait_for_spoilers(groupId: str):
             f"http://{config['tautulli']['api']}/api/v2?apikey={getenv('TAUTULLI_KEY')}&cmd=get_activity"
         )
 
+        resp.raise_for_status()
+
         # get current streams of survivor
         # in the current season
         # for the current player
@@ -107,7 +109,7 @@ async def wait_for_spoilers(groupId: str):
 if __name__ == "__main__":
 
     # decode the group id
-    groupId = b64decode(config["signal"]["group"].split(".")[-1])
+    groupId = b64decode(config["signal"]["group"].split(".")[-1]).decode("utf-8")
 
     event_loop = get_event_loop()
 
