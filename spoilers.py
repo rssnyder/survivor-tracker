@@ -31,7 +31,7 @@ async def receive():
         raise e
 
 
-async def wait_for_spoilers(groupId: str):
+async def wait_for_spoilers(groupId: str, season: str):
     # loop through all new messages
 
     logging.info("waiting for spoilers...")
@@ -79,7 +79,7 @@ async def wait_for_spoilers(groupId: str):
             for x in resp.json()["response"]["data"]["sessions"]
             if (
                 (x.get("grandparent_title") == "Survivor")
-                and (x.get("parent_title").split(" ")[-1] == "47")
+                and (x.get("parent_title").split(" ")[-1] == season)
                 and (config["signal_players"].get(signal_user) == x.get("username"))
             )
         ]:
@@ -113,4 +113,6 @@ if __name__ == "__main__":
 
     event_loop = get_event_loop()
 
-    event_loop.run_until_complete(wait_for_spoilers(groupId))
+    event_loop.run_until_complete(
+        wait_for_spoilers(groupId, config["survivor"]["season"])
+    )
