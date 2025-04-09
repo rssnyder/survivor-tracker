@@ -1,0 +1,21 @@
+[survivor]
+season =
+
+[signal]
+api =
+number
+group =
+
+[tautulli]
+api =
+
+[plex_players]
+"tautulli_user" = "John Smith"
+
+[signal_players]
+"signal name" = "tautulli_user"
+
+[database]
+host =
+db =
+user =
