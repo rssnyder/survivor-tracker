@@ -63,7 +63,7 @@ async def wait_for_spoilers(groupId: str, season: str):
             logging.debug("not a spoiler")
             continue
 
-        signal_user = message["envelope"]["source"]
+        signal_user = message["envelope"]["sourceName"]
 
         resp = get(
             f"http://{config['tautulli']['api']}/api/v2?apikey={getenv('TAUTULLI_KEY')}&cmd=get_activity"

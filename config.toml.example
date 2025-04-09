@@ -13,7 +13,7 @@ api =
 "tautulli_user" = "John Smith"
 
 [signal_players]
-"+15555555555" = "tautulli_user"
+"signal name" = "tautulli_user"
 
 [database]
 host =
